@@ -1,0 +1,21 @@
+#cache_effective_user squid
+#cache_effective_group squid
+
+https_port 443 accel defaultsite=<hostname> cert=<PEM path> key=<key path>
+cache_peer <backend host> parent 80 0 no-query originserver name=myAccel
+
+acl site dstdomain <SSL hostname>
+http_access allow site
+cache_peer_access myAccel allow site
+cache_peer_access myAccel deny all
+
+icap_enable on
+#icap_preview_enable on
+#icap_preview_size 1024
+icap_send_client_ip on
+icap_send_client_username on
+icap_client_username_header X-Authenticated-User
+icap_service service_req reqmod_precache bypass=0 icap://<ICAP address>:<ICAP port>/REQ-Service
+adaptation_access service_req allow all
+icap_service service_resp respmod_precache bypass=0 icap://<ICAP address>:<ICAP port>/RESP-Service
+adaptation_access service_resp allow all
